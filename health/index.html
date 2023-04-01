@@ -4,7 +4,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="robots" content="noodp" />
-        <title>Health -Hack The Box - Blog</title><meta name="Description" content=""><meta property="og:title" content="Health -Hack The Box" />
+        <title>Health -Hack The Box - Hacks | CTF walkthroughs</title><meta name="Description" content=""><meta property="og:title" content="Health -Hack The Box" />
 <meta property="og:description" content="Summary Starting with the web application that has a webhook feature.It is vulnerable to SSRF using a Python script called &ldquo;redirect.py&rdquo; to redirect traffic to the web application that has running internaly on port 3000, and then attempting to perform a SQL injection attack by sending UNION ALL SELECT statements through the redirecter and enumerate databases in order to extract information from the database.using credntioal we got from database to take ssh as user." />
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://elf1337.github.io/health/" /><meta property="article:section" content="posts" />
@@ -14,8 +14,8 @@
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Health -Hack The Box"/>
 <meta name="twitter:description" content="Summary Starting with the web application that has a webhook feature.It is vulnerable to SSRF using a Python script called &ldquo;redirect.py&rdquo; to redirect traffic to the web application that has running internaly on port 3000, and then attempting to perform a SQL injection attack by sending UNION ALL SELECT statements through the redirecter and enumerate databases in order to extract information from the database.using credntioal we got from database to take ssh as user."/>
-<meta name="application-name" content="Blog">
-<meta name="apple-mobile-web-app-title" content="Blog"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="https://elf1337.github.io/favicon.ico" />
+<meta name="application-name" content="Hacks | CTF walkthroughs">
+<meta name="apple-mobile-web-app-title" content="Hacks | CTF walkthroughs"><meta name="theme-color" content="#ffffff"><meta name="msapplication-TileColor" content="#da532c"><link rel="shortcut icon" type="image/x-icon" href="https://elf1337.github.io/favicon.ico" />
         <link rel="icon" type="image/png" sizes="32x32" href="https://elf1337.github.io/favicon-32x32.png">
         <link rel="icon" type="image/png" sizes="16x16" href="https://elf1337.github.io/favicon-16x16.png"><link rel="apple-touch-icon" sizes="180x180" href="https://elf1337.github.io/apple-touch-icon.png"><link rel="mask-icon" href="https://elf1337.github.io/safari-pinned-tab.svg" color="#5bbad5"><link rel="manifest" href="https://elf1337.github.io/site.webmanifest"><link rel="canonical" href="https://elf1337.github.io/health/" /><link rel="next" href="https://elf1337.github.io/updown/" /><link rel="stylesheet" href="https://elf1337.github.io/lib/normalize/normalize.min.css"><link rel="stylesheet" href="https://elf1337.github.io/css/style.min.css"><link rel="stylesheet" href="https://elf1337.github.io/lib/fontawesome-free/all.min.css"><link rel="stylesheet" href="https://elf1337.github.io/lib/animate/animate.min.css"><script type="application/ld+json">
     {
@@ -31,7 +31,7 @@
             "@type": "Organization",
             "name": ""},"author": {
                 "@type": "Person",
-                "name": "Akhil"
+                "name": "elf"
             },"description": ""
     }
     </script></head>
@@ -40,7 +40,7 @@
         <div id="mask"></div><div class="wrapper"><header class="desktop" id="header-desktop">
     <div class="header-wrapper">
         <div class="header-title">
-            <a href="https://elf1337.github.io/" title="Blog">Home</a>
+            <a href="https://elf1337.github.io/" title="Hacks | CTF walkthroughs">Home</a>
         </div>
         <div class="menu">
             <div class="menu-inner"><a class="menu-item" href="https://elf1337.github.io/posts/"> Posts </a><a class="menu-item" href="https://elf1337.github.io/tags/"> Tags </a><a class="menu-item" href="https://elf1337.github.io/about/"> About </a><span class="menu-item delimiter"></span><span class="menu-item search" id="search-desktop">
@@ -64,7 +64,7 @@
     <div class="header-container">
         <div class="header-wrapper">
             <div class="header-title">
-                <a href="https://elf1337.github.io/" title="Blog">Home</a>
+                <a href="https://elf1337.github.io/" title="Hacks | CTF walkthroughs">Home</a>
             </div>
             <div class="menu-toggle" id="menu-toggle-mobile">
                 <span></span><span></span><span></span>
@@ -100,7 +100,7 @@
             <h2 class="toc-title">Contents</h2>
             <div class="toc-content" id="toc-content-auto"></div>
         </div><article class="page single"><h1 class="single-title animate__animated animate__flipInX">Health -Hack The Box</h1><div class="post-meta">
-            <div class="post-meta-line"><span class="post-author"><a href="https://elf1337.github.io/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>Akhil</a>
+            <div class="post-meta-line"><span class="post-author"><a href="https://elf1337.github.io/" title="Author" rel=" author" class="author"><i class="fas fa-user-circle fa-fw" aria-hidden="true"></i>elf</a>
 </span>&nbsp;<span class="post-category">included in <a href="https://elf1337.github.io/categories/hackthebox/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>HackThebox</a>&nbsp;<a href="https://elf1337.github.io/categories/ctf/"><i class="far fa-folder fa-fw" aria-hidden="true"></i>CTF</a></span></div>
             <div class="post-meta-line"><i class="far fa-calendar-alt fa-fw" aria-hidden="true"></i>&nbsp;<time datetime="2023-01-07">2023-01-07</time>&nbsp;<i class="fas fa-pencil-alt fa-fw" aria-hidden="true"></i>&nbsp;1333 words&nbsp;
                 <i class="far fa-clock fa-fw" aria-hidden="true"></i>&nbsp;7 minutes&nbsp;</div>
@@ -607,7 +607,7 @@ root@health:~#
                             <a class="link-to-markdown" href="https://elf1337.github.io/health/index.md" target="_blank">Read Markdown</a>
                         </span></div>
             <div class="post-info-share">
-                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://elf1337.github.io/health/" data-title="Health -Hack The Box" data-via="akhil0x8" data-hashtags="webhook,SSRF,SQLi,Cracking,Private-key"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://elf1337.github.io/health/" data-hashtag="webhook"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="https://elf1337.github.io/health/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on WhatsApp" data-sharer="whatsapp" data-url="https://elf1337.github.io/health/" data-title="Health -Hack The Box" data-web><i class="fab fa-whatsapp fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Reddit" data-sharer="reddit" data-url="https://elf1337.github.io/health/"><i class="fab fa-reddit fa-fw" aria-hidden="true"></i></a></span>
+                <span><a href="javascript:void(0);" title="Share on Twitter" data-sharer="twitter" data-url="https://elf1337.github.io/health/" data-title="Health -Hack The Box" data-via="elf1337s" data-hashtags="webhook,SSRF,SQLi,Cracking,Private-key"><i class="fab fa-twitter fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Facebook" data-sharer="facebook" data-url="https://elf1337.github.io/health/" data-hashtag="webhook"><i class="fab fa-facebook-square fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Linkedin" data-sharer="linkedin" data-url="https://elf1337.github.io/health/"><i class="fab fa-linkedin fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on WhatsApp" data-sharer="whatsapp" data-url="https://elf1337.github.io/health/" data-title="Health -Hack The Box" data-web><i class="fab fa-whatsapp fa-fw" aria-hidden="true"></i></a><a href="javascript:void(0);" title="Share on Reddit" data-sharer="reddit" data-url="https://elf1337.github.io/health/"><i class="fab fa-reddit fa-fw" aria-hidden="true"></i></a></span>
             </div>
         </div>
     </div>
@@ -625,7 +625,7 @@ root@health:~#
 <div id="comments"></div></article></div>
             </main><footer class="footer">
         <div class="footer-container"><div class="footer-line">Powered by <a href="https://gohugo.io/" target="_blank" rel="noopener noreffer" title="Hugo 0.92.2">Hugo</a> | Theme - <a href="https://github.com/dillonzq/LoveIt" target="_blank" rel="noopener noreffer" title="LoveIt 0.2.10"><i class="far fa-kiss-wink-heart fa-fw" aria-hidden="true"></i> LoveIt</a>
-                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://elf1337.github.io/" target="_blank">Akhil</a></span></div>
+                </div><div class="footer-line" itemscope itemtype="http://schema.org/CreativeWork"><i class="far fa-copyright fa-fw" aria-hidden="true"></i><span itemprop="copyrightYear">2022 - 2023</span><span class="author" itemprop="copyrightHolder">&nbsp;<a href="https://elf1337.github.io/" target="_blank">elf</a></span></div>
         </div>
     </footer></div>
 

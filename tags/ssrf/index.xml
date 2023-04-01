@@ -1,8 +1,8 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
-        <title>SSRF - Tag - Blog</title>
+        <title>SSRF - Tag - Hacks | CTF walkthroughs</title>
         <link>https://elf1337.github.io/tags/ssrf/</link>
-        <description>SSRF - Tag - Blog</description>
+        <description>SSRF - Tag - Hacks | CTF walkthroughs</description>
         <generator>Hugo -- gohugo.io</generator><language>en</language><lastBuildDate>Sat, 07 Jan 2023 13:43:40 &#43;0000</lastBuildDate><atom:link href="https://elf1337.github.io/tags/ssrf/" rel="self" type="application/rss+xml" /><item>
     <title>Health -Hack The Box</title>
     <link>https://elf1337.github.io/health/</link>
