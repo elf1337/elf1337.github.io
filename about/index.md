@@ -1,6 +1,5 @@
 # Whoami
 
-Hi all, I'm elf1337, a security researcher focused on web application security, and a CTF player here. I've written CTF walkthroughs mostly for HTB machines and my hacks
-
+Hello everyone, I am elf1337, a security researcher with a keen interest in web application security and an avid CTF player.
 
 
